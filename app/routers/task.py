@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends, APIRouter
 from sqlalchemy.orm import Session
-from .. import models, schemas
+from .. import models, schemas, oauth2
 from ..database import get_db
 
 router = APIRouter(
@@ -10,14 +10,18 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[schemas.TaskResponse])
-def get_tasks(db: Session = Depends(get_db)):
+def get_tasks(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+    print(current_user)
     tasks = db.query(models.Task).all()
     return tasks
 
 
 @router.get("/{id}", response_model=schemas.TaskResponse)
-def get_task(id: int, db: Session = Depends(get_db)):
+def get_task(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+
+    print(current_user.email)
     task = db.query(models.Task).filter(models.Task.id == id).first()
+
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -27,7 +31,7 @@ def get_task(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.TaskResponse)
-def create_task(body: schemas.TaskBase, db: Session = Depends(get_db)):
+def create_task(body: schemas.TaskBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     task = models.Task(**body.model_dump())
     db.add(task)
     db.commit()
@@ -36,7 +40,7 @@ def create_task(body: schemas.TaskBase, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(id: int, db: Session = Depends(get_db)):
+def delete_task(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     task = db.query(models.Task).filter(models.Task.id == id).first()
     if not task:
         raise HTTPException(
@@ -48,7 +52,7 @@ def delete_task(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=schemas.TaskResponse)
-def update_task(id: int, body: schemas.TaskBase, db: Session = Depends(get_db)):
+def update_task(id: int, body: schemas.TaskBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     task_query = db.query(models.Task).filter(models.Task.id == id)
     if task_query.first() is None:
         raise HTTPException(
