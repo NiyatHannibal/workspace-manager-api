@@ -12,15 +12,17 @@ router = APIRouter(
 @router.get("/", response_model=list[schemas.TaskResponse])
 def get_tasks(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     print(current_user)
-    tasks = db.query(models.Task).all()
+    tasks = db.query(models.Task).filter(
+        models.Task.owner_id == current_user.id).all()
     return tasks
 
 
 @router.get("/{id}", response_model=schemas.TaskResponse)
 def get_task(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-
-    print(current_user.email)
-    task = db.query(models.Task).filter(models.Task.id == id).first()
+    task = db.query(models.Task).filter(
+        models.Task.id == id,
+        models.Task.owner_id == current_user.id
+    ).first()
 
     if not task:
         raise HTTPException(
@@ -32,7 +34,7 @@ def get_task(id: int, db: Session = Depends(get_db), current_user: models.User =
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.TaskResponse)
 def create_task(body: schemas.TaskBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-    task = models.Task(**body.model_dump())
+    task = models.Task(**body.model_dump(), owner_id=current_user.id)
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -41,7 +43,10 @@ def create_task(body: schemas.TaskBase, db: Session = Depends(get_db), current_u
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-    task = db.query(models.Task).filter(models.Task.id == id).first()
+    task = db.query(models.Task).filter(
+        models.Task.id == id,
+        models.Task.owner_id == current_user.id
+    ).first()
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -53,7 +58,8 @@ def delete_task(id: int, db: Session = Depends(get_db), current_user: models.Use
 
 @router.put("/{id}", response_model=schemas.TaskResponse)
 def update_task(id: int, body: schemas.TaskBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-    task_query = db.query(models.Task).filter(models.Task.id == id)
+    task_query = db.query(models.Task).filter(models.Task.id == id,
+                                              models.Task.owner_id == current_user.id)
     if task_query.first() is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

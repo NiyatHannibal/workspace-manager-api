@@ -1,5 +1,6 @@
 from .database import Base
-from sqlalchemy import TIMESTAMP, Column, Integer, String, text
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, text
+from sqlalchemy.orm import relationship
 
 
 class Task(Base):
@@ -11,6 +12,9 @@ class Task(Base):
     status = Column(String, nullable=False)
     priority = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
+    owner_id = Column(Integer, ForeignKey(
+        "users.id", ondelete="CASCADE"), nullable=False)
+    owner = relationship("User")
 
 
 class User(Base):

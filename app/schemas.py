@@ -27,14 +27,6 @@ class TaskCreate(TaskBase):
     pass
 
 
-class TaskResponse(TaskBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
 class User(BaseModel):
     username: str
     email: EmailStr
@@ -45,6 +37,15 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
+
+    class Config:
+        from_attributes = True
+
+
+class TaskResponse(TaskBase):
+    id: int
+    owner: UserResponse
+    created_at: datetime
 
     class Config:
         from_attributes = True
