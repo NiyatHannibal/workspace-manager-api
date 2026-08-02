@@ -10,10 +10,30 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[schemas.TaskResponse])
-def get_tasks(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
-    print(current_user)
-    tasks = db.query(models.Task).filter(
-        models.Task.owner_id == current_user.id).all()
+def get_tasks(
+        search: str | None = None,
+        status: str | None = None,
+        priority: str | None = None,
+        limit: int = 10,
+        skip: int = 0,
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(oauth2.get_current_user)):
+
+    query = db.query(models.Task)
+    query = query.filter(
+        models.Task.owner_id == current_user.id)
+    if search:
+        query = query.filter(
+            models.Task.title.ilike(f"%{search}%"))
+    if status:
+        query = query.filter(
+            models.Task.status == status)
+    if priority:
+        query = query.filter(
+            models.Task.priority == priority)
+
+    query = query.offset(skip).limit(limit)
+    tasks = query.all()
     return tasks
 
 

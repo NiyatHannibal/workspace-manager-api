@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from enum import Enum
 from datetime import datetime
 from typing import Optional
@@ -38,8 +38,7 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskResponse(TaskBase):
@@ -47,8 +46,7 @@ class TaskResponse(TaskBase):
     owner: UserResponse
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserLogin(BaseModel):
