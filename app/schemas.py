@@ -27,6 +27,15 @@ class TaskCreate(TaskBase):
     pass
 
 
+class WorkspaceBase(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class WorkspaceCreate(WorkspaceBase):
+    pass
+
+
 class User(BaseModel):
     username: str
     email: EmailStr
@@ -41,9 +50,17 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TaskResponse(TaskBase):
+class WorkspaceResponse(WorkspaceBase):
     id: int
     owner: UserResponse
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TaskResponse(TaskBase):
+    id: int
+    workspace: WorkspaceResponse
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
