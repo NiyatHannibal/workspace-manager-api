@@ -72,6 +72,25 @@ def get_members(
     return members
 
 
+@router.get("/{member_id}", response_model=schemas.WorkspaceMemberResponse)
+def get_member(
+        member_id: int,
+        workspace_id: int,
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(oauth2.get_current_user)):
+    verify_workspace_member(workspace_id, db, current_user)
+    member = db.query(models.WorkspaceMember).filter(
+        models.WorkspaceMember.user_id == member_id,
+        models.WorkspaceMember.workspace_id == workspace_id).first()
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {member_id} is not a member of this workspace."
+        )
+
+    return member
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.WorkspaceMemberResponse)
 def create_member(
         body: schemas.WorkspaceMemberCreate,
@@ -109,3 +128,30 @@ def create_member(
     db.commit()
     db.refresh(member)
     return member
+
+
+@router.delete("/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_member(
+        member_id: int,
+        workspace_id: int,
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(oauth2.get_current_user)):
+    verify_workspace_owner(workspace_id, db, current_user)
+    user = db.query(models.User).filter(models.User.id == member_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {member_id} does not exist."
+        )
+    member = db.query(models.WorkspaceMember).filter(
+        models.WorkspaceMember.workspace_id == workspace_id,
+        models.WorkspaceMember.user_id == member_id
+    ).first()
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User is not a member of this workspace.."
+        )
+    db.delete(member)
+    db.commit()
