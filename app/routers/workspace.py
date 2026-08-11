@@ -48,6 +48,10 @@ def get_workspace(id: int, db: Session = Depends(get_db), current_user: models.U
 def create_workspace(body: schemas.WorkspaceBase, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     workspace = models.Workspace(**body.model_dump(), owner_id=current_user.id)
     db.add(workspace)
+    db.flush()
+    membership = models.WorkspaceMember(
+        workspace_id=workspace.id, user_id=current_user.id)
+    db.add(membership)
     db.commit()
     db.refresh(workspace)
     return workspace

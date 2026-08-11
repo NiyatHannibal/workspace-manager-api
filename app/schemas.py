@@ -36,6 +36,10 @@ class WorkspaceCreate(WorkspaceBase):
     pass
 
 
+class WorkspaceMemberCreate(BaseModel):
+    user_id: int
+
+
 class User(BaseModel):
     username: str
     email: EmailStr
@@ -63,6 +67,13 @@ class TaskResponse(TaskBase):
     workspace: WorkspaceResponse
     created_at: datetime
 
+    model_config = ConfigDict(from_attributes=True)
+
+
+class WorkspaceMemberResponse(BaseModel):
+    id: int
+    user: UserResponse
+    joined_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
 

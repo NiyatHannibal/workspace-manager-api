@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, text
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, text, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 
@@ -34,4 +34,26 @@ class Task(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     workspace_id = Column(Integer, ForeignKey(
         "workspaces.id", ondelete="CASCADE"), nullable=False)
-    Workspace = relationship("Workspace")
+    workspace = relationship("Workspace")
+
+
+class WorkspaceMember(Base):
+    __tablename__ = "workspacemembers"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+
+    workspace_id = Column(Integer, ForeignKey(
+        "workspaces.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey(
+        "users.id", ondelete="CASCADE"), nullable=False)
+    joined_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
+    workspace = relationship("Workspace")
+    user = relationship("User")
+
+    __table_args = (
+        UniqueConstraint(
+            "workspace_id",
+            " user_id",
+            name="uq_workspace_member"
+        ),
+    )
