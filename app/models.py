@@ -20,6 +20,7 @@ class Workspace(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     owner_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
+    visibility = Column(String, nullable=False, server_default="private")
     owner = relationship("User")
 
 
@@ -53,7 +54,7 @@ class WorkspaceMember(Base):
     __table_args = (
         UniqueConstraint(
             "workspace_id",
-            " user_id",
+            "user_id",
             name="uq_workspace_member"
         ),
     )

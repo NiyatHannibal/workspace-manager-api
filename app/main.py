@@ -1,12 +1,9 @@
 from fastapi import FastAPI
-from . import models
-from .database import engine
-from .routers import workspace, task, user, auth
+from .routers import workspace, task, user, auth, membership
 app = FastAPI()
 
-models.Base.metadata.create_all(bind=engine)
-
-app.include_router(workspace.router)
-app.include_router(task.router)
-app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(user.router)
+app.include_router(workspace.router)
+app.include_router(membership.router)
+app.include_router(task.router)
